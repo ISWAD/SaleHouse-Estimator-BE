@@ -1,16 +1,25 @@
 const handleComment = (req, res, db) => {
-	const { id, commentsNum } = req.body;
+	const { userid, commenttext } = req.body;
 	foundUser = false;
-	db.users.map((user) => {
-		if (user.id === id) {
-			foundUser = true;
-			user.commentsNum++;
-			res.json(user.commentsNum);
-		}
-	});
-	if (! foundUser) {
-		res.json("Not Found");
-	}
+
+	db.transaction(trx => {
+      trx('usercomments').insert({
+        userid: userid,
+        commenttext: commenttext
+      })
+      .returning('userid')
+      .then(Uid => {
+       	return trx('users').where({id: Uid[0]})
+        	.increment('commentsnum', 1)
+        	.returning('commentsnum')
+          	.then(num => {
+            	res.json(num);
+          })
+      })
+      .then(trx.commit)
+      .catch(trx.rollback)
+    })
+    .catch(err => res.status(400).json('Unable to send your comment!'));
 }
 
 module.exports = {

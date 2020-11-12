@@ -1,9 +1,12 @@
 const handleMail = (req, res, db) => {
-	mails = [];
-	db.users.map((user) => {
-		mails.push(user.email)
-	})
-	res.json(mails);
+	let mails = [];
+	db.select('email').from('users')
+		.then(mail => {
+			res.json(mail);
+		})
+		.catch(err => {
+			res.status(400).json("Something is wrong; please try later!")
+		})
 }
 
 module.exports = {

@@ -1,23 +1,34 @@
 const handleRegister = (req, res, db, bcrypt) => {
 	const { firstName, lastName, email, password } = req.body;
 	let registered = false;
-	db.users.map((user) => {
-		if (user.email === email) {
-			registered = true;
-			res.json("alreadyRegistered")
-		}
-	})
-	if (! registered) {
-		db.users.push({
-			id: '3',
-        	firstName: firstName,
-        	lastName: lastName,
-        	email: email,
-        	password: bcrypt.hashSync(password),
-        	commentsNum: 0,
-        	joined: new Date()
+
+	db.select('email').from('users').where({email})
+		.then(mail => {
+			if (mail.length > 0) {
+				registered = true;
+				res.json("The email address has already been registered!");
+			}
 		})
-		res.json(db.users[db.users.length - 1]);
+		.catch(err => {
+			res.json("Something is wrong; please try later");
+		})
+	
+	if (! registered) {
+		db('users')
+		.insert({
+			firstname: firstName,
+			lastname: lastName,
+			email: email,
+			hash: bcrypt.hashSync(password),
+			joined: new Date()
+		})
+		.returning('*')
+		.then(user => {
+			res.json(user[0]);
+		})
+		.catch(err => {
+			res.json("Something is wrong; please try later!")
+		})
 	}
 }
 
