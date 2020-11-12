@@ -2,6 +2,8 @@
 
 # dependencies
 /node_modules
+manualDB.js
+dbCreation.txt
 /.pnp
 .pnp.js
 
